@@ -101,18 +101,22 @@
   let CACHE = {};
   let DETALLE_CLIENTE = null;
 
-  async function fetchDatos(tipo, extra) {
+  function fetchDatos(tipo, extra) {
     const key = tipo + FECHA + (extra||'');
-    if (CACHE[key]) return CACHE[key];
-    try {
-      const url = URL_CONECTOR + `?tipo=${tipo}&fecha=${FECHA}${extra||''}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      CACHE[key] = data;
-      return data;
-    } catch(e) {
-      return { error: e.message };
-    }
+    if (CACHE[key]) return Promise.resolve(CACHE[key]);
+    return new Promise((resolve) => {
+      const cbName = 'cb_' + Date.now();
+      const script = document.createElement('script');
+      window[cbName] = (data) => {
+        CACHE[key] = data;
+        delete window[cbName];
+        document.body.removeChild(script);
+        resolve(data);
+      };
+      script.onerror = () => resolve({ error: 'Error de conexión' });
+      script.src = URL_CONECTOR + `?tipo=${tipo}&fecha=${FECHA}${extra||''}&callback=${cbName}`;
+      document.body.appendChild(script);
+    });
   }
 
   function setLoading(msg) {
