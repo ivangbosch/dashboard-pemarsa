@@ -161,9 +161,9 @@
   document.getElementById('fecha-picker').value = hoyISO;
   document.getElementById('header-fecha').textContent = hoy() + ' · CIERRE EN CURSO';
 
-  function cambiarFecha(val) {
-    const d = new Date(val);
-    FECHA = `${String(d.getDate()+1).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  ffunction cambiarFecha(val) {
+    const partes = val.split('-');
+    FECHA = `${partes[2]}/${partes[1]}/${partes[0]}`;
     CACHE = {};
     renderTab();
   }
