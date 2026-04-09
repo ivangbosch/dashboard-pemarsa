@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Pemarsa</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; background: #f4f4f8; color: #1a1a2e; }
+
+  .header { background: #1a1a2e; color: #e8c87a; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-title { font-size: 16px; font-weight: 700; letter-spacing: 2px; }
+  .header-sub { font-size: 11px; color: #6a6a8a; letter-spacing: 1px; margin-top: 2px; }
+  .header-right { text-align: right; font-size: 12px; color: #6a6a8a; }
+  .header-pneto { font-size: 15px; font-weight: 700; color: #7ec87e; }
+
+  .tab-bar { display: flex; background: #13132a; padding: 0 28px; border-bottom: 1px solid #2a2a3a; overflow-x: auto; }
+  .tab { padding: 11px 16px; font-size: 12px; cursor: pointer; border: none; background: none; color: #4a4a6a; border-bottom: 2px solid transparent; white-space: nowrap; letter-spacing: 1px; font-family: inherit; transition: all 0.15s; }
+  .tab.active { color: #e8c87a; border-bottom: 2px solid #e8c87a; font-weight: 700; }
+  .tab:hover { color: #b0a890; }
+
+  .content { padding: 24px 28px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
+  .kpi-card { background: #0f0f1a; border: 1px solid #1e1e30; border-radius: 8px; padding: 16px 18px; border-top: 2px solid #e8c87a; }
+  .kpi-label { font-size: 10px; color: #4a4a6a; letter-spacing: 2px; margin-bottom: 6px; text-transform: uppercase; }
+  .kpi-value { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
+  .kpi-sub { font-size: 11px; color: #4a4a6a; }
+  .pos { color: #7ec87e; } .neg { color: #e87e7e; } .neutral { color: #e8c87a; }
+
+  .section { background: #0f0f1a; border: 1px solid #1e1e2e; border-radius: 8px; padding: 18px 20px; margin-bottom: 14px; }
+  .sec-title { font-size: 10px; color: #4a4a6a; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; font-weight: 700; }
+  .row-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #12121e; font-size: 13px; }
+  .row-item:last-child { border-bottom: none; }
+  .row-label { color: #6a6a8a; }
+  .row-value { font-weight: 700; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+  .bar-wrap { margin-bottom: 10px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: #6a6a8a; }
+  .bar-track { height: 5px; background: #1a1a2a; border-radius: 3px; }
+  .bar-fill { height: 5px; border-radius: 3px; background: #e8c87a; }
+
+  .be-ok { background: #0d1a0d; color: #7ec87e; border: 1px solid #1a3a1a; border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; display: flex; gap: 8px; }
+  .be-warn { background: #1a1200; color: #e8c87a; border: 1px solid #3a2800; border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; display: flex; gap: 8px; }
+
+  .dias-bar { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+  .dia-dot { width: 26px; height: 26px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .dia-pos { background: #0d1a0d; color: #7ec87e; }
+  .dia-neg { background: #1a0d0d; color: #e87e7e; }
+  .dia-hoy { background: #e8c87a; color: #0a0a0f; }
+  .dia-fut { background: #1a1a2a; color: #4a4a6a; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { padding: 8px 10px; text-align: left; color: #3a3a5a; font-weight: 400; font-size: 10px; letter-spacing: 1px; border-bottom: 1px solid #1a1a2a; text-transform: uppercase; }
+  td { padding: 8px 10px; border-bottom: 1px solid #12121e; vertical-align: middle; }
+  tr:hover td { background: #0d0d18; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .badge-pos { background: #0d1a0d; color: #7ec87e; }
+  .badge-neg { background: #1a0d0d; color: #e87e7e; }
+  .badge-zero { background: #1a1a2a; color: #4a4a6a; }
+
+  .search-bar { width: 100%; padding: 8px 12px; border: 1px solid #2a2a3a; border-radius: 6px; font-size: 13px; background: #0d0d18; color: #e8e0d0; margin-bottom: 14px; font-family: inherit; }
+  .search-bar:focus { outline: none; border-color: #e8c87a; }
+
+  .loading { text-align: center; padding: 60px 0; color: #4a4a6a; font-size: 13px; letter-spacing: 2px; }
+  .error-msg { background: #1a0d0d; color: #e87e7e; border: 1px solid #3a1a1a; border-radius: 6px; padding: 12px 16px; font-size: 13px; margin-bottom: 14px; }
+
+  .date-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .date-bar input { background: #0d0d18; border: 1px solid #2a2a3a; border-radius: 6px; padding: 7px 12px; color: #e8e0d0; font-size: 13px; font-family: inherit; }
+  .date-bar button { background: #e8c87a; color: #0a0a0f; border: none; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .date-bar button:hover { opacity: 0.85; }
+
+  .clickable { color: #7eb8e8; cursor: pointer; text-decoration: none; }
+  .clickable:hover { text-decoration: underline; }
+  .back-btn { background: none; border: 1px solid #2a2a3a; border-radius: 6px; padding: 6px 14px; font-size: 13px; cursor: pointer; color: #6a6a8a; font-family: inherit; margin-bottom: 16px; }
+  .back-btn:hover { background: #1a1a2a; }
+
+  @media (max-width: 600px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── CONFIGURACIÓN ── -->
+<script>
+  // IMPORTANTE: reemplazá esta URL con la tuya del conector
+  const URL_CONECTOR = "1bQCLa_pUpcLHpkq-uxdeIqWq4lja9rzK12djg9tXD48uXDxLmf4JZUu1";
+
+  const fmtARS = n => (n<0?'-':'')+'$ '+new Intl.NumberFormat('es-AR',{maximumFractionDigits:0}).format(Math.abs(n));
+  const fmtUSD = n => (n<0?'-':'')+'USD '+new Intl.NumberFormat('es-AR',{maximumFractionDigits:0}).format(Math.abs(n));
+  const hoy = () => { const d=new Date(); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; };
+
+  let FECHA = hoy();
+  let TAB = 'resultado';
+  let CACHE = {};
+  let DETALLE_CLIENTE = null;
+
+  async function fetchDatos(tipo, extra) {
+    const key = tipo + FECHA + (extra||'');
+    if (CACHE[key]) return CACHE[key];
+    try {
+      const url = URL_CONECTOR + `?tipo=${tipo}&fecha=${FECHA}${extra||''}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      CACHE[key] = data;
+      return data;
+    } catch(e) {
+      return { error: e.message };
+    }
+  }
+
+  function setLoading(msg) {
+    document.getElementById('main-content').innerHTML = `<div class="loading">${msg || 'Cargando...'}</div>`;
+  }
+
+  function setError(msg) {
+    document.getElementById('main-content').innerHTML = `<div class="error-msg">Error: ${msg}</div>`;
+  }
+</script>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div>
+    <div class="header-title">MESA DE OPERACIONES</div>
+    <div class="header-sub" id="header-fecha">Cargando...</div>
+  </div>
+  <div class="header-right">
+    <div style="font-size:10px;color:#4a4a6a;letter-spacing:1px;margin-bottom:3px">PATRIMONIO NETO</div>
+    <div class="header-pneto" id="header-pneto">—</div>
+  </div>
+</div>
+
+<!-- ── TABS ── -->
+<div class="tab-bar">
+  <button class="tab active" onclick="cambiarTab('resultado')">Resultado del día</button>
+  <button class="tab" onclick="cambiarTab('clientes')">Cuentas clientes</button>
+  <button class="tab" onclick="cambiarTab('profits')">Profits operadores</button>
+  <button class="tab" onclick="cambiarTab('caja')">Caja y posición</button>
+</div>
+
+<!-- ── CONTENIDO ── -->
+<div class="content">
+  <div class="date-bar">
+    <span style="font-size:12px;color:#4a4a6a">Fecha:</span>
+    <input type="date" id="fecha-picker" onchange="cambiarFecha(this.value)">
+    <button onclick="recargar()">Actualizar</button>
+    <span style="font-size:11px;color:#4a4a6a;margin-left:8px" id="ultima-actualizacion"></span>
+  </div>
+  <div id="main-content"><div class="loading">Iniciando dashboard...</div></div>
+</div>
+
+<script>
+  // Inicializar fecha picker con hoy
+  const hoyISO = new Date().toISOString().split('T')[0];
+  document.getElementById('fecha-picker').value = hoyISO;
+  document.getElementById('header-fecha').textContent = hoy() + ' · CIERRE EN CURSO';
+
+  function cambiarFecha(val) {
+    const d = new Date(val);
+    FECHA = `${String(d.getDate()+1).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    CACHE = {};
+    renderTab();
+  }
+
+  function cambiarTab(tab) {
+    TAB = tab;
+    DETALLE_CLIENTE = null;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    renderTab();
+  }
+
+  function recargar() {
+    CACHE = {};
+    renderTab();
+  }
+
+  async function renderTab() {
+    if (TAB === 'resultado')  await renderResultado();
+    else if (TAB === 'clientes') await renderClientes();
+    else if (TAB === 'profits')  await renderProfits();
+    else if (TAB === 'caja')     await renderCaja();
+    document.getElementById('ultima-actualizacion').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-AR');
+  }
+
+  // ── RESULTADO DEL DÍA ──────────────────────────────────
+  async function renderResultado() {
+    setLoading('Cargando resultado del día...');
+    const data = await fetchDatos('resumen');
+    if (data.error) { setError(data.error); return; }
+
+    const gastosMes = 15000000;
+    const beAlcanzado = (data.profitPesos||0) >= gastosMes;
+
+    let html = `<div class="kpi-grid">`;
+    [
+      {label:'Resultado hoy', value: fmtARS(data.profitPesos||0), sub: fmtUSD(data.profitUSD||0), color: (data.profitPesos||0)>=0?'pos':'neg'},
+      {label:'Operaciones', value: data.totalOperaciones||0, sub: `Compras: ${fmtUSD(data.totalComprado||0)}`, color:'neutral'},
+      {label:'Ventas USD', value: fmtUSD(data.totalVendido||0), sub: `Posición: ${fmtUSD(data.posicion||0)}`, color:'neutral'},
+      {label:'Neto pesos', value: fmtARS(data.netoPesos||0), sub: `Ing: ${fmtARS(data.ingPesos||0)}`, color:(data.netoPesos||0)>=0?'pos':'neg'},
+    ].forEach(k => html += `<div class="kpi-card"><div class="kpi-label">${k.label}</div><div class="kpi-value ${k.color}">${k.value}</div><div class="kpi-sub">${k.sub}</div></div>`);
+    html += `</div>`;
+
+    html += `<div class="${beAlcanzado?'be-ok':'be-warn'}">
+      <span>${beAlcanzado?'✓':'→'}</span>
+      <span>${beAlcanzado
+        ? 'Break-even alcanzado — gastos del mes cubiertos'
+        : 'Faltan ' + fmtARS(gastosMes-(data.profitPesos||0)) + ' para cubrir los gastos fijos del mes'
+      }</span>
+    </div>`;
+
+    html += `<div class="section"><div class="sec-title">Profits por operador — hoy</div>`;
+    const profs = data.profitsPorOperador || {};
+    const sorted = Object.entries(profs).sort((a,b)=>(b[1].pesos||0)-(a[1].pesos||0));
+    const maxP = Math.max(...sorted.map(([,v])=>v.pesos||0), 1);
+    sorted.forEach(([op, v]) => {
+      html += `<div class="bar-wrap">
+        <div class="bar-label">
+          <span style="color:#b0a890">${op}</span>
+          <div style="display:flex;gap:10px">
+            ${(v.usd||0)>0?`<span style="color:#4a4a6a">${fmtUSD(v.usd)}</span>`:''}
+            <span style="color:#7ec87e;font-weight:700">${fmtARS(v.pesos||0)}</span>
+          </div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(((v.pesos||0)/maxP)*100)}%"></div></div>
+      </div>`;
+    });
+    if (sorted.length === 0) html += `<div style="color:#4a4a6a;font-size:13px;padding:10px 0">Sin operaciones registradas para esta fecha</div>`;
+    html += `</div>`;
+
+    document.getElementById('main-content').innerHTML = html;
+    document.getElementById('header-pneto').textContent = fmtARS(43288840);
+  }
+
+  // ── CUENTAS DE CLIENTES ────────────────────────────────
+  let searchClientes = '';
+  async function renderClientes() {
+    if (DETALLE_CLIENTE) { renderDetalleCliente(DETALLE_CLIENTE); return; }
+    setLoading('Cargando clientes...');
+    const data = await fetchDatos('clientes', '&q=');
+    if (data.error) { setError(data.error); return; }
+    const clientes = Array.isArray(data) ? data : [];
+
+    let html = `<input class="search-bar" id="search-clientes" placeholder="Buscar por nombre, código u operador..." value="${searchClientes}" oninput="filtrarClientes(this.value)">`;
+    html += `<div id="tabla-clientes">` + buildTablaClientes(clientes, searchClientes) + `</div>`;
+    document.getElementById('main-content').innerHTML = html;
+  }
+
+  function buildTablaClientes(clientes, q) {
+    const filtrados = clientes.filter(c =>
+      (c.nombre||'').toLowerCase().includes(q.toLowerCase()) ||
+      (c.codigo||'').toLowerCase().includes(q.toLowerCase()) ||
+      (c.operador||'').toLowerCase().includes(q.toLowerCase())
+    );
+    if (filtrados.length === 0) return `<div style="color:#4a4a6a;text-align:center;padding:40px 0;font-size:13px">Sin resultados</div>`;
+
+    let html = `<div style="overflow-x:auto"><table>
+      <thead><tr><th>Código</th><th>Nombre</th><th>Operador</th><th>Fecha Alta</th><th>Fuente</th></tr></thead><tbody>`;
+    filtrados.forEach(c => {
+      html += `<tr>
+        <td style="font-weight:700;color:#e8c87a">${c.codigo||'—'}</td>
+        <td><a class="clickable" onclick="verDetalleCliente(${JSON.stringify(c).replace(/"/g,'&quot;')})">${c.nombre||'—'}</a></td>
+        <td style="color:#6a6a8a">${c.operador||'—'}</td>
+        <td style="color:#4a4a6a;font-size:12px">${c.fechaAlta||'—'}</td>
+        <td style="color:#4a4a6a;font-size:12px">${c.fuente||'—'}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    html += `<div style="margin-top:12px;font-size:12px;color:#4a4a6a">${filtrados.length} clientes</div>`;
+    return html;
+  }
+
+  function filtrarClientes(q) {
+    searchClientes = q;
+    const tabla = document.getElementById('tabla-clientes');
+    if (tabla) {
+      fetchDatos('clientes', '&q=').then(data => {
+        const clientes = Array.isArray(data) ? data : [];
+        tabla.innerHTML = buildTablaClientes(clientes, q);
+      });
+    }
+  }
+
+  function verDetalleCliente(c) {
+    DETALLE_CLIENTE = c;
+    renderDetalleCliente(c);
+  }
+
+  function renderDetalleCliente(c) {
+    const initials = (c.nombre||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    let html = `<button class="back-btn" onclick="volverClientes()">← Volver</button>`;
+    html += `<div class="section">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <div style="width:44px;height:44px;border-radius:50%;background:#1a2a3a;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#7eb8e8;flex-shrink:0">${initials}</div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#e8e0d0">${c.nombre||'—'}</div>
+          <div style="font-size:13px;color:#6a6a8a">${c.operador||'—'} · ${c.codigo||'—'}</div>
+        </div>
+      </div>`;
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">`;
+    [{label:'Código',value:c.codigo||'—'},{label:'Operador',value:c.operador||'—'},{label:'Fecha Alta',value:c.fechaAlta||'—'}]
+      .forEach(k => html += `<div style="background:#0d0d18;border-radius:6px;padding:12px"><div style="font-size:10px;color:#4a4a6a;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">${k.label}</div><div style="font-weight:700;color:#e8c87a">${k.value}</div></div>`);
+    html += `</div>`;
+    html += `<div style="font-size:12px;color:#4a4a6a;padding-top:12px;border-top:1px solid #1a1a2a">Fuente de alta: ${c.fuente||'—'}</div>`;
+    html += `</div>`;
+    document.getElementById('main-content').innerHTML = html;
+  }
+
+  function volverClientes() {
+    DETALLE_CLIENTE = null;
+    renderClientes();
+  }
+
+  // ── PROFITS OPERADORES ─────────────────────────────────
+  async function renderProfits() {
+    setLoading('Cargando profits...');
+    const data = await fetchDatos('profits', '&fecha=mes');
+    if (data.error) { setError(data.error); return; }
+    const profits = Array.isArray(data) ? data : [];
+
+    const totalP = profits.reduce((a,p)=>a+(p.pesos||0),0);
+    const totalU = profits.reduce((a,p)=>a+(p.usd||0),0);
+    const activos = profits.filter(p=>(p.pesos||0)>0||(p.usd||0)>0);
+    const maxP = Math.max(...profits.map(p=>p.pesos||0),1);
+
+    let html = `<div class="kpi-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">`;
+    [{label:'Total profits pesos',value:fmtARS(totalP),color:'pos'},
+     {label:'Total profits USD',value:fmtUSD(totalU),color:'pos'},
+     {label:'Operadores activos',value:activos.length+' / '+profits.length,color:'neutral'},
+    ].forEach(k => html += `<div class="kpi-card"><div class="kpi-label">${k.label}</div><div class="kpi-value ${k.color}">${k.value}</div></div>`);
+    html += `</div>`;
+
+    html += `<div class="section"><div class="sec-title">Ranking del mes</div>`;
+    activos.forEach(p => {
+      const pct = Math.round(((p.pesos||0)/maxP)*100);
+      html += `<div class="bar-wrap">
+        <div class="bar-label">
+          <span style="color:#b0a890;font-weight:700">${p.op||p.operador}</span>
+          <div style="display:flex;gap:12px">
+            ${(p.usd||0)>0?`<span style="color:#4a4a6a">${fmtUSD(p.usd)}</span>`:''}
+            <span style="color:#7ec87e;font-weight:700">${fmtARS(p.pesos||0)}</span>
+          </div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    });
+
+    const sinAct = profits.filter(p=>(p.pesos||0)===0&&(p.usd||0)===0);
+    if (sinAct.length>0) {
+      html += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid #1a1a2a">
+        <div style="font-size:10px;color:#4a4a6a;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Sin actividad</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">`;
+      sinAct.forEach(p => html += `<span style="font-size:12px;padding:3px 10px;border-radius:99px;background:#1a1a2a;color:#4a4a6a">${p.op||p.operador}</span>`);
+      html += `</div></div>`;
+    }
+    html += `</div>`;
+    document.getElementById('main-content').innerHTML = html;
+  }
+
+  // ── CAJA Y POSICIÓN ────────────────────────────────────
+  async function renderCaja() {
+    setLoading('Cargando caja...');
+    const data = await fetchDatos('caja');
+    if (data.error) { setError(data.error); return; }
+
+    let html = `<div class="kpi-grid">`;
+    [{label:'Ingresos USD',value:fmtUSD(data.ingresosUSD||0),color:'pos'},
+     {label:'Egresos USD',value:fmtUSD(data.egresosUSD||0),color:'neg'},
+     {label:'Neto USD',value:fmtUSD(data.netoUSD||0),color:(data.netoUSD||0)>=0?'pos':'neg'},
+     {label:'Neto pesos',value:fmtARS(data.netoPesos||0),color:(data.netoPesos||0)>=0?'pos':'neg'},
+    ].forEach(k => html += `<div class="kpi-card"><div class="kpi-label">${k.label}</div><div class="kpi-value ${k.color}">${k.value}</div></div>`);
+    html += `</div>`;
+
+    html += `<div class="two-col">`;
+    html += `<div class="section"><div class="sec-title">Movimiento USD</div>`;
+    [{label:'Ingresos',value:data.ingresosUSD||0,f:fmtUSD,color:'pos'},
+     {label:'Egresos',value:-(data.egresosUSD||0),f:fmtUSD,color:'neg'},
+     {label:'Neto',value:data.netoUSD||0,f:fmtUSD,color:(data.netoUSD||0)>=0?'pos':'neg'},
+    ].forEach(r => html += `<div class="row-item"><span class="row-label">${r.label}</span><span class="row-value ${r.color}">${r.f(r.value)}</span></div>`);
+    html += `</div>`;
+
+    html += `<div class="section"><div class="sec-title">Movimiento pesos</div>`;
+    [{label:'Ingresos',value:data.ingresosPesos||0,f:fmtARS,color:'pos'},
+     {label:'Egresos',value:-(data.egresosPesos||0),f:fmtARS,color:'neg'},
+     {label:'Neto',value:data.netoPesos||0,f:fmtARS,color:(data.netoPesos||0)>=0?'pos':'neg'},
+    ].forEach(r => html += `<div class="row-item"><span class="row-label">${r.label}</span><span class="row-value ${r.color}">${r.f(r.value)}</span></div>`);
+    html += `</div></div>`;
+
+    document.getElementById('main-content').innerHTML = html;
+  }
+
+  // Arrancar
+  renderTab();
+</script>
+</body>
+</html>
